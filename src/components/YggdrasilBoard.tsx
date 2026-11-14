@@ -307,7 +307,7 @@ export default function YggdrasilBoard({ pawns, focusedNodeId=null, reachableIds
       </div>
     </div>
     <div ref={scrollRef} className="max-h-[72dvh] min-h-[320px] overflow-auto overscroll-contain sm:max-h-[780px]"
-      aria-label="Área navegável da árvore com rolagem vertical e horizontal">
+      role="region" tabIndex={0} aria-label="Área navegável da árvore com rolagem vertical e horizontal">
       <div className={'mx-auto '+(expanded?'min-w-[900px] max-w-[1050px]':'min-w-[680px] max-w-[900px] sm:min-w-0')}>
         <TreeDrawing prefix={prefix} svgRef={svgRef} pawns={pawns} focusedNodeId={focusedNodeId}
           reachableIds={reachableIds} onMove={onMove} busy={busy}/>
