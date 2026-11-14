@@ -153,8 +153,8 @@ test('casas intermediárias se distribuem por galhos orgânicos sem sobreposiç�
     }).map(el=>{
       const id=Number(el.getAttribute('data-node-id'))
       const transform=el.getAttribute('transform')??''
-      const values=transform.match(/translate\\(([-\\d.]+) ([-\\d.]+)\\)/)
-      return {id,x:Number(values?.[1]),y:Number(values?.[2])}
+      const [x,y]=transform.replace('translate(','').replace(')','').split(' ').map(Number)
+      return {id,x,y}
     })
   })
   expect(points).toHaveLength(12)
