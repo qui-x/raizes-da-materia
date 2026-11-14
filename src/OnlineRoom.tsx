@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import YggdrasilBoard from './components/YggdrasilBoard'
 import RuneDie from './components/RuneDie'
 import { houseLabel, neighbors, nodes, playableElements, playerColors, playerMarks } from './game/board'
@@ -86,6 +86,8 @@ export default function OnlineRoom(){
   const [board,setBoard]=useState<Board>('arvore')
   const [panel,setPanel]=useState<Panel>(null)
   const [exitConfirm,setExitConfirm]=useState(false)
+  const headerRef=useRef<HTMLElement>(null)
+  const [headerHeight,setHeaderHeight]=useState(128)
   const [busy,setBusy]=useState(false)
   const [pendingRoll,setPendingRoll]=useState(false)
   const [notice,setNotice]=useState('Crie uma sala como mestre ou entre com um código de convite.')
@@ -150,6 +152,17 @@ export default function OnlineRoom(){
     }
     window.addEventListener('keydown',escape)
     return()=>window.removeEventListener('keydown',escape)
+  },[])
+
+  useEffect(()=>{
+    const header=headerRef.current
+    if(!header)return
+    const update=()=>setHeaderHeight(Math.ceil(header.getBoundingClientRect().height))
+    update()
+    const observer=new ResizeObserver(update)
+    observer.observe(header)
+    window.addEventListener('resize',update)
+    return()=>{observer.disconnect();window.removeEventListener('resize',update)}
   },[])
 
   const host=!!room&&room.host_id===userId
@@ -250,7 +263,7 @@ export default function OnlineRoom(){
   const panelTitle=panel==='pessoas'?'Participantes e conquistas':'Ações da partida'
 
   return <main className="min-h-dvh min-w-0 bg-[#0b1712] pb-[calc(6.6rem+env(safe-area-inset-bottom))] text-[#eee0c2]">
-    <header className="sticky top-0 z-30 border-b border-[#98784e]/30 bg-[#13251b]/95 px-3 py-2 shadow-xl backdrop-blur-md sm:px-5">
+    <header ref={headerRef} className="sticky top-0 z-[60] border-b border-[#98784e]/30 bg-[#13251b]/95 px-3 py-2 shadow-xl backdrop-blur-md sm:px-5">
       <div className="mx-auto flex min-w-0 max-w-[1680px] flex-wrap items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="text-[10px] uppercase tracking-[.2em] text-[#cbb388] sm:text-xs">Química • Libras • Estratégia</p>
@@ -356,7 +369,8 @@ export default function OnlineRoom(){
       </div>
     </nav>}
 
-    {room&&panel&&<div className="fixed inset-x-2 top-[calc(7.8rem+env(safe-area-inset-top))] bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 overflow-y-auto overscroll-contain rounded-2xl border border-[#c19a61]/65 bg-[#17241c]/98 p-3 shadow-[0_15px_75px_#000b] backdrop-blur-xl sm:inset-x-auto sm:right-5 sm:top-[104px] sm:w-[min(420px,calc(100vw-32px))] sm:p-4"
+    {room&&panel&&<div className="fixed inset-x-2 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 overflow-y-auto overscroll-contain rounded-2xl border border-[#c19a61]/65 bg-[#17241c]/98 p-3 shadow-[0_15px_75px_#000b] backdrop-blur-xl sm:inset-x-auto sm:right-5 sm:w-[min(420px,calc(100vw-32px))] sm:p-4"
+      style={{top:headerHeight+8}}
       role="region" aria-label={'Painel flutuante: '+panelTitle}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-serif text-xl text-[#f4dba8]">{panelTitle}</h2>
