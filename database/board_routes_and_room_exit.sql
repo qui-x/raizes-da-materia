@@ -79,12 +79,12 @@ create unique index if not exists game_players_active_seat_uq
 -- O ex-participante deixa de ler dados da sala imediatamente.
 create or replace function game_private.is_member(p_room uuid)
 returns boolean language sql stable security definer set search_path = ''
-as $
+as $$
   select exists(select 1 from public.game_rooms r
     where r.id=p_room and r.host_id=(select auth.uid()))
   or exists(select 1 from public.game_players p
     where p.room_id=p_room and p.user_id=(select auth.uid()) and p.active);
-$;
+$$;
 
 create or replace function game_private.join_room(p_code text, p_nickname text)
 returns jsonb language plpgsql security definer set search_path = ''
