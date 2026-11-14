@@ -21,5 +21,18 @@ O workflow `.github/workflows/pages.yml` prepara o site para GitHub Pages quando
 
 A URL prevista, após ativar a publicação, é `https://qui-x.github.io/raizes-da-materia/`. Não presumir que esteja publicada antes de verificar o workflow e o Pages.
 
-## Estado da versão 0.1
-O front-end é uma **demonstração local** de mapa e Tabela Periódica. A conquista de elementos é simulada; o sistema ainda não comprova desafios em Libras nem permite salas online. As respostas científicas e os sinais-termo deverão ser validados por especialistas. A sincronização real requer o projeto Supabase e suas regras de segurança.
+## Estado da versão 0.2 (em desenvolvimento)
+- **Demonstração local:** movimentação simulada em um aparelho, com o mapa SVG e a Tabela Periódica.
+- **Interface de salas online:** formulários de mestre e jogadores, convite por código/link, tabuleiro compartilhável, ações de turno e validação pelo mestre.
+- **Backend preparado:** esquema SQL em [database/initial_multiplayer.sql](database/initial_multiplayer.sql) com RLS e funções de ação autorizadas.
+- **Ainda não é multiplayer operacional:** falta criar e autorizar o projeto Supabase, habilitar Auth anônimo, aplicar/testar o SQL e configurar as variáveis públicas do build.
+- Nenhum gabarito reservado nem sinal-termo definitivo foi disponibilizado; Libras e conteúdo científico exigem validação especializada.
+
+## Como habilitar a sala online
+1. Criar projeto Supabase autorizado e habilitar **Auth → Anonymous Sign-Ins**.
+2. Aplicar e verificar `database/initial_multiplayer.sql` no projeto, incluindo autorização RLS e Realtime.
+3. Definir `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` no ambiente de build. A publishable key é pública; **nunca** incluir service role/secret key na aplicação.
+4. Executar build e verificar sala com mestre e quatro jogadores em aparelhos diferentes.
+5. Só declarar homologação após validar concorrência, reconexões, privacidade e compatibilidade móvel.
+
+Consulte [docs/arquitetura-multijogador.md](docs/arquitetura-multijogador.md) para os critérios de aceitação.
