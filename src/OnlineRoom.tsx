@@ -34,7 +34,7 @@ export default function OnlineRoom() {
   const [code, setCode] = useState(getInviteCode)
   const [name, setName] = useState('Pesquisador')
   const [roomTitle, setRoomTitle] = useState('Expedição da Matéria')
-  const [roomId, setRoomId] = useState<string|null>(null)
+  const [roomId, setRoomId] = useState<string|null>(() => sessionStorage.getItem('raizes-room-id'))
   const [room, setRoom] = useState<Room|null>(null)
   const [players, setPlayers] = useState<Player[]>([])
   const [claims, setClaims] = useState<Claim[]>([])
@@ -119,7 +119,7 @@ export default function OnlineRoom() {
       if (error) throw new Error(error.message)
       const response = data as JsonResponse|boolean|number|null
       const id = roomOverride ?? (typeof response === 'object' && response !== null && 'id' in response ? response.id : roomId)
-      if (id) { setRoomId(id); await refresh(id) }
+      if (id) { sessionStorage.setItem('raizes-room-id',id); setRoomId(id); await refresh(id) }
       setNotice(message)
     } catch (e) { setNotice('Não foi possível concluir: '+asError(e)) }
     finally { setLoading(false) }
@@ -144,7 +144,9 @@ export default function OnlineRoom() {
   }
   function award() {
     if (!supabase || !roomId || !canMasterAward) return
-    void execute(() => supabase.rpc('game_award_element',{p_room:roomId,p_symbol:symbol}), 'Elemento atribuído ao jogador atual.')
+    const chosen = available.some(e=>e.symbol===symbol) ? symbol : available[0]?.symbol
+    if (!chosen) return
+    void execute(() => supabase.rpc('game_award_element',{p_room:roomId,p_symbol:chosen}), 'Elemento atribuído ao jogador atual.')
   }
 
   if (!configured) return <section className="mx-auto max-w-3xl p-4 text-[#f2ede1]">
@@ -185,10 +187,12 @@ export default function OnlineRoom() {
             <div><h3 className="text-lg font-semibold">{room.name}</h3>
               <p className="text-sm text-[#c4d7ca]">Código: <strong className="tracking-[.2em] text-white">{room.code}</strong></p>
               <p className="text-xs text-[#c1d2c6]">{humanPhase(room.phase)}</p></div>
-            <button className={styles.secondary} onClick={()=> {
+            <div className="flex flex-wrap gap-2"><button className={styles.secondary} onClick={()=> {
               const url = location.origin + location.pathname + '#sala=' + room.code
               void navigator.clipboard.writeText(url).then(()=>setNotice('Link de convite copiado.')).catch(()=>setNotice(url))
-            }}>Copiar convite</button>
+            }}>Copiar convite</button><button className={styles.secondary} onClick={()=> {
+              sessionStorage.removeItem('raizes-room-id'); setRoomId(null); setRoom(null); setPlayers([]); setClaims([]); setNotice('Você voltou à entrada. Seu registro anterior na sala foi preservado.')
+            }}>Voltar à entrada</button></div>
           </div>
         </div>
         <div className={styles.card}>
