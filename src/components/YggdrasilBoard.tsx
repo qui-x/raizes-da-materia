@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId, useRef, useState, type RefObject } from 'react'
 import { houseColor, houseLabel, neighbors, nodes, playerColors, type HouseType } from '../game/board'
 
 /**
@@ -17,8 +17,6 @@ type Props = {
 }
 
 const parchment = '#f0d4a1'
-const brass = '#c59d5c'
-const ink = '#15120f'
 const typeSymbols: Record<HouseType, string> = {
   identificacao: 'I', cotidiano: 'C', desafio: 'D', acontecimento: '±',
 }
@@ -104,8 +102,8 @@ function NodeGlyph({ type }: { type: HouseType }) {
   return <path d="M-21 -12 L0 -24 L21 -12 L21 12 L0 24 L-21 12 Z" fill={fill} stroke={parchment} strokeWidth="1.6" />
 }
 
-function TreeDrawing({ prefix, pawns, focusedNodeId, reachableIds, onMove, busy }: Required<Pick<Props, 'pawns' | 'reachableIds' | 'busy'>> & Pick<Props, 'focusedNodeId' | 'onMove'> & { prefix: string }) {
-  return <svg viewBox="0 0 900 1210" role="group" aria-label="Yggdrasil, árvore da descoberta com 48 casas navegáveis"
+function TreeDrawing({ prefix, pawns, focusedNodeId, reachableIds, onMove, busy, svgRef }: Required<Pick<Props, 'pawns' | 'reachableIds' | 'busy'>> & Pick<Props, 'focusedNodeId' | 'onMove'> & { prefix: string; svgRef: RefObject<SVGSVGElement | null> }) {
+  return <svg ref={svgRef} viewBox="0 0 900 1210" role="group" aria-label="Yggdrasil, árvore da descoberta com 48 casas navegáveis"
     className="block h-auto w-full select-none" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient id={prefix + '-vellum'} cx="48%" cy="41%" r="64%">
@@ -280,22 +278,51 @@ function TreeDrawing({ prefix, pawns, focusedNodeId, reachableIds, onMove, busy 
 
 export default function YggdrasilBoard({ pawns, focusedNodeId=null, reachableIds=[], onMove, busy=false, className='' }: Props) {
   const [expanded,setExpanded] = useState(false)
+  const svgRef = useRef<SVGSVGElement>(null)
   const prefix=useId().replace(/:/g,'')
+
+  function exportSvg() {
+    if (!svgRef.current) return
+    const cloned = svgRef.current.cloneNode(true) as SVGSVGElement
+    cloned.setAttribute('xmlns', 'http://www.w3.org/2000/svg')
+    cloned.removeAttribute('class')
+    cloned.querySelectorAll('[role="button"]').forEach(node => {
+      node.removeAttribute('tabindex')
+      node.removeAttribute('role')
+      node.removeAttribute('aria-disabled')
+      node.removeAttribute('class')
+    })
+    const content = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      new XMLSerializer().serializeToString(cloned)
+    const url = URL.createObjectURL(new Blob([content], { type: 'image/svg+xml;charset=utf-8' }))
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'raizes-da-materia-yggdrasil.svg'
+    link.click()
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000)
+  }
+
   return <div className={'w-full rounded-2xl border border-[#876b45]/45 bg-[#080807] text-[#f4dfb9] shadow-[inset_0_0_80px_rgba(139,100,50,0.17)] '+className}>
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#8a6a43]/35 px-3 py-3 sm:px-5">
       <div>
         <p className="font-serif text-base tracking-[.14em] text-[#e7ca91] sm:text-lg">A Árvore dos Elementos</p>
         <p className="text-xs text-[#bcac8e]">Gravura vetorial interativa · 48 casas</p>
       </div>
-      <button type="button" onClick={()=>setExpanded(old=>!old)}
-        aria-pressed={expanded}
-        className="min-h-11 rounded-lg border border-[#c59d5c]/60 px-4 text-sm font-semibold text-[#f2d49d] hover:bg-[#3d3020] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fae4b4]">
-        {expanded?'Ajustar mapa':'Ampliar mapa'}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={()=>setExpanded(old=>!old)}
+          aria-pressed={expanded}
+          className="min-h-11 rounded-lg border border-[#c59d5c]/60 px-3 text-sm font-semibold text-[#f2d49d] hover:bg-[#3d3020] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fae4b4]">
+          {expanded?'Ajustar mapa':'Ampliar mapa'}
+        </button>
+        <button type="button" onClick={exportSvg}
+          className="min-h-11 rounded-lg border border-[#c59d5c]/60 px-3 text-sm font-semibold text-[#f2d49d] hover:bg-[#3d3020] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#fae4b4]">
+          Exportar SVG
+        </button>
+      </div>
     </div>
     <div className="overflow-x-auto overscroll-x-contain">
       <div className={'mx-auto '+(expanded?'min-w-[840px] max-w-[960px]':'min-w-[600px] max-w-[850px] sm:min-w-0')}>
-        <TreeDrawing prefix={prefix} pawns={pawns} focusedNodeId={focusedNodeId}
+        <TreeDrawing prefix={prefix} svgRef={svgRef} pawns={pawns} focusedNodeId={focusedNodeId}
           reachableIds={reachableIds} onMove={onMove} busy={busy}/>
       </div>
     </div>
