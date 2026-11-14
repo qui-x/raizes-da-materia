@@ -269,7 +269,7 @@ test('carta de alternativas é pública e gabarito é restrito ao mestre',async(
     const studentPage=await student.newPage()
     await mockVirtualCard(masterPage,'master',state)
     await mockVirtualCard(studentPage,'student',state)
-    await Promise.all([masterPage.goto('./'),studentPage.goto('./')])
+    await Promise.all([masterPage.goto('http://127.0.0.1:4173/raizes-da-materia/'),studentPage.goto('http://127.0.0.1:4173/raizes-da-materia/')])
     await expect(masterPage.getByRole('dialog',{name:'Carta de investigação compartilhada'})).toBeVisible()
     await expect(studentPage.getByRole('dialog',{name:'Carta de investigação compartilhada'})).toBeVisible()
     await expect(masterPage.getByText('Referência reservada')).toBeVisible()
