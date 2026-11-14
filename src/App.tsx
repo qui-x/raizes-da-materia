@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import OnlineRoom from './OnlineRoom'
-import { houseColor, houseLabel, neighbors, nodes, playableElements, playerColors, playerMarks } from './game/board'
+import YggdrasilBoard from './components/YggdrasilBoard'
+import { houseLabel, neighbors, nodes, playableElements, playerColors, playerMarks } from './game/board'
 
 type View = 'arvore' | 'tabela'
 const initialPositions = [1, 1, 1, 1]
@@ -88,27 +89,12 @@ function DemoApp() {
           </nav>
           {view === 'arvore' ? <div className="p-2 sm:p-4">
             <p className="py-2 text-center text-xs text-[#b7c9bc]">Raízes · Tronco · Ramos · Passagens transversais</p>
-            <svg viewBox="0 0 395 603" className="mx-auto block h-auto w-full max-w-[510px]" aria-label="Mapa de 48 casas conectadas da Árvore da Descoberta">
-              <defs><linearGradient id="wood" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#9c8459"/><stop offset="1" stopColor="#513f30"/></linearGradient></defs>
-              <path d="M196 600 Q185 490 192 390 Q206 250 197 30" fill="none" stroke="url(#wood)" strokeWidth="20" strokeLinecap="round"/>
-              <path d="M195 570 Q130 533 56 553 M196 570 Q267 534 335 553 M197 400 Q130 352 50 337 M197 400 Q278 354 345 337 M197 227 Q137 185 50 165 M197 227 Q266 183 340 165" stroke="#8a7253" strokeWidth="8" fill="none" strokeLinecap="round"/>
-              {nodes.flatMap(n => neighbors(n.id).filter(j => j > n.id).map(j => {
-                const b = nodes[j]
-                return <path key={n.id + '-' + j} d={'M' + n.x + ' ' + n.y + ' Q' + ((n.x + b.x) / 2) + ' ' + ((n.y + b.y) / 2 - (n.row === b.row ? 9 : 0)) + ' ' + b.x + ' ' + b.y} stroke="#9ab99e" strokeOpacity=".6" strokeWidth="2.5" fill="none" />
-              }))}
-              {nodes.map(n => {
-                const canSelect = reachable.includes(n.id)
-                const isHere = positions[active] === n.id
-                const fill = houseColor[n.type]
-                const mark = n.type === 'identificacao' ? 'I' : n.type === 'cotidiano' ? 'C' : n.type === 'desafio' ? 'D' : '±'
-                return <g key={n.id} tabIndex={canSelect ? 0 : -1} role="button" aria-label={'Casa ' + (n.id + 1) + ', ' + houseLabel[n.type] + (canSelect ? ', disponível para movimento' : '')} aria-disabled={!canSelect} onClick={() => move(n.id)} onKeyDown={ev => { if (canSelect && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); move(n.id) } }} className={canSelect ? 'cursor-pointer outline-none' : ''}>
-                  {canSelect && <circle cx={n.x} cy={n.y} r="20" stroke="#fff5a9" strokeWidth="2" fill="none" strokeDasharray="4 3"/>}
-                  <circle cx={n.x} cy={n.y} r="14" fill={fill} stroke={isHere ? '#fff7b7' : '#edddc2'} strokeWidth={isHere ? 3 : 1.3}/>
-                  <text x={n.x} y={n.y + 4} fontSize="11" fill="#fff" textAnchor="middle" fontWeight="bold">{mark}</text>
-                  {positions.some(p => p === n.id) && <circle cx={n.x + 10} cy={n.y - 11} r="5" fill={playerColors[positions.indexOf(n.id)]} stroke="#fff" strokeWidth="1.2"/>}
-                </g>
-              })}
-            </svg>
+            <YggdrasilBoard
+              pawns={positions.map((nodeId, seat) => ({ nodeId, seat: seat + 1 }))}
+              focusedNodeId={current}
+              reachableIds={reachable}
+              onMove={move}
+            />
           </div> : <div className="p-3 sm:p-4">
             <h2 className="mb-2 text-lg font-semibold">Atlas Periódico</h2>
             <p className="mb-3 text-sm text-[#bbcdc2]">118 posições científicas; 50 elementos jogáveis nesta edição. Deslize horizontalmente para consultar a tabela.</p>
