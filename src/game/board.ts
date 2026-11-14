@@ -50,15 +50,13 @@ const arms: Array<readonly [number,number]> = [12,18,24,30,36,42].flatMap(start 
 )
 const junctions: Array<readonly [number,number]> = [
   [1,12],[1,18],[5,24],[5,30],[9,36],[9,42],
-  [0,13],[0,19],[12,18],[36,42],
+  [0,13],[0,19],[12,18],[24,30],[36,42],
   [15,17],[21,23],[27,29],[33,35],[39,41],[45,47],
   [11,38],[11,44],[29,39],[35,45],
 ]
-// As casas 27 e 33 ramificam em dois destinos independentes;
-// as antigas arestas 28–29 e 34–35 ligavam pontas de galhos sem madeira.
-// Mantemos os mesmos IDs, evitando invalidar cartas e posições de partidas.
-const organicArms = arms.filter(([a,b]) => !(a===28&&b===29) && !(a===34&&b===35))
-export const edges: ReadonlyArray<readonly [number,number]> = [...trunks,...organicArms,...junctions]
+// Os 62 caminhos e IDs continuam exatamente iguais aos do Supabase.
+// As novas curvas são uma alteração visual compatível com partidas existentes.
+export const edges: ReadonlyArray<readonly [number,number]> = [...trunks,...arms,...junctions]
 const adjacency = Array.from({length:48},()=>new Set<number>())
 for (const [a,b] of edges) { adjacency[a].add(b); adjacency[b].add(a) }
 
