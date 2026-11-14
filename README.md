@@ -1,23 +1,38 @@
 # Raízes da Matéria
 
-Jogo educativo de estratégia, Química e Libras em elaboração. Projeto original com dois tabuleiros complementares:
+Jogo educativo original de Química e Libras. A versão principal será um jogo **web mobile multiplayer**, com mestre e até quatro jogadores em uma sala compartilhada; a versão física será complementar.
 
-1. **Árvore da Descoberta** — mapa de exploração ramificado, inspirado na estrutura de uma árvore mitológica, com movimentação por dado e desafios em Libras.
-2. **Tabela Periódica** — construção e conquista de posições por até quatro jogadores.
+## Tabuleiros
+- **Árvore da Descoberta**: mapa SVG de 48 casas com navegação vertical/horizontal, bifurcações e quatro tipos de encontros.
+- **Tabela Periódica**: estrutura científica de 118 posições com 50 elementos jogáveis das famílias A. O domínio é indicado por quatro cores e símbolos.
 
-## Conceitos centrais
-- 118 posições científicas na Tabela Periódica; 50 elementos jogáveis das famílias A (grupos 1, 2 e 13–18).
-- Quatro casas de exploração: identificação, investigação cotidiana, desafio e acontecimento.
-- Cartas com identidade química no exterior e roteiro de pistas em Libras no interior, mediado pelo mestre.
-- Conquistar uma carta permite marcar seu domínio na Tabela Periódica.
-- A vitória depende de completar uma família ou período e apresentar uma narrativa científica.
-- Elementos do 7º período poderão conceder coringas estratégicos, sem substituir propriedades químicas reais.
+## Tecnologia
+React + TypeScript + Tailwind CSS + SVG, Vite, GitHub Pages e backend futuro no Supabase. Arquitetura de salas descrita em [docs/arquitetura-multijogador.md](docs/arquitetura-multijogador.md).
 
-## Stack inicial
-HTML semântico, JavaScript modular, Tailwind CSS e SVG para o mapa da árvore.
+## Desenvolvimento local
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-## Estado
-Planejamento e protótipo inicial. Regras, artes e sinais-termo ainda não homologados. Datilologia não substitui sinais lexicais da Libras. A versão final deverá ser validada por especialistas em Libras e em ensino de Química.
+## Publicação
+O workflow `.github/workflows/pages.yml` prepara o site para GitHub Pages quando a branch for integrada na `main` e em **Settings → Pages → Build and deployment → Source** for escolhido **GitHub Actions**.
 
-## Desenvolvimento
-O primeiro protótipo será desenvolvido em ramo próprio, com revisão antes de integrar a `main`.
+A URL prevista, após ativar a publicação, é `https://qui-x.github.io/raizes-da-materia/`. Não presumir que esteja publicada antes de verificar o workflow e o Pages.
+
+## Estado da versão 0.2 (em desenvolvimento)
+- **Demonstração local:** movimentação simulada em um aparelho, com o mapa SVG e a Tabela Periódica.
+- **Interface de salas online:** formulários de mestre e jogadores, convite por código/link, tabuleiro compartilhável, ações de turno e validação pelo mestre.
+- **Backend preparado:** esquema SQL em [database/initial_multiplayer.sql](database/initial_multiplayer.sql) com RLS e funções de ação autorizadas.
+- **Ainda não é multiplayer operacional:** falta criar e autorizar o projeto Supabase, habilitar Auth anônimo, aplicar/testar o SQL e configurar as variáveis públicas do build.
+- Nenhum gabarito reservado nem sinal-termo definitivo foi disponibilizado; Libras e conteúdo científico exigem validação especializada.
+
+## Como habilitar a sala online
+1. Criar projeto Supabase autorizado e habilitar **Auth → Anonymous Sign-Ins**.
+2. Aplicar e verificar `database/initial_multiplayer.sql` no projeto, incluindo autorização RLS e Realtime.
+3. Definir `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` no ambiente de build. A publishable key é pública; **nunca** incluir service role/secret key na aplicação.
+4. Executar build e verificar sala com mestre e quatro jogadores em aparelhos diferentes.
+5. Só declarar homologação após validar concorrência, reconexões, privacidade e compatibilidade móvel.
+
+Consulte [docs/arquitetura-multijogador.md](docs/arquitetura-multijogador.md) para os critérios de aceitação.
