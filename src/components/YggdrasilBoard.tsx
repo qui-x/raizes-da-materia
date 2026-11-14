@@ -223,7 +223,7 @@ function TreeDrawing({ prefix, pawns, focusedNodeId, reachableIds, onMove, busy,
             onMove?.(n.id)
           }
         }}
-        className={selectable?'cursor-pointer focus:outline-none':'cursor-default'}
+        className={selectable?'cursor-pointer focus:outline-none':'pointer-events-none cursor-default'}
         transform={'translate('+p.x+' '+p.y+')'}>
         <title>{'Casa '+(n.id+1)+' — '+houseLabel[n.type]}</title>
         {/* Área de toque maior que o marcador visível */}
