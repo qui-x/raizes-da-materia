@@ -26,13 +26,14 @@ const types: HouseType[] = [
 // Coordenadas da própria árvore, no viewBox 900 × 1210.
 // 0–11 = tronco; 12–23 = raízes; 24–35 = galhos médios;
 // 36–47 = copa superior. Cada casa repousa sobre um veio de madeira.
+// Galhos 24–35: espaçamento irregular e bifurcações reais, não fileiras diagonais.
 const coordinates: ReadonlyArray<readonly [number, number]> = [
   [450,1078],[451,1022],[452,962],[447,900],[447,839],[453,784],
   [450,723],[453,663],[449,599],[450,536],[453,459],[451,369],
   [386,1040],[330,1038],[275,1073],[217,1073],[162,1090],[114,1105],
   [514,1041],[569,1038],[627,1069],[684,1073],[735,1090],[785,1105],
-  [390,768],[324,740],[269,709],[214,668],[170,628],[125,579],
-  [515,767],[579,742],[634,708],[687,669],[734,626],[785,578],
+  [396,782],[344,748],[289,706],[247,658],[182,636],[210,565],
+  [509,777],[563,744],[616,708],[663,667],[730,636],[706,565],
   [388,520],[337,497],[281,465],[228,420],[177,367],[128,301],
   [514,522],[568,496],[624,466],[674,423],[723,368],[770,300],
 ]
@@ -49,11 +50,15 @@ const arms: Array<readonly [number,number]> = [12,18,24,30,36,42].flatMap(start 
 )
 const junctions: Array<readonly [number,number]> = [
   [1,12],[1,18],[5,24],[5,30],[9,36],[9,42],
-  [0,13],[0,19],[12,18],[24,30],[36,42],
+  [0,13],[0,19],[12,18],[36,42],
   [15,17],[21,23],[27,29],[33,35],[39,41],[45,47],
   [11,38],[11,44],[29,39],[35,45],
 ]
-export const edges: ReadonlyArray<readonly [number,number]> = [...trunks,...arms,...junctions]
+// As casas 27 e 33 ramificam em dois destinos independentes;
+// as antigas arestas 28–29 e 34–35 ligavam pontas de galhos sem madeira.
+// Mantemos os mesmos IDs, evitando invalidar cartas e posições de partidas.
+const organicArms = arms.filter(([a,b]) => !(a===28&&b===29) && !(a===34&&b===35))
+export const edges: ReadonlyArray<readonly [number,number]> = [...trunks,...organicArms,...junctions]
 const adjacency = Array.from({length:48},()=>new Set<number>())
 for (const [a,b] of edges) { adjacency[a].add(b); adjacency[b].add(a) }
 
