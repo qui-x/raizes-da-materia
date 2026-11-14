@@ -356,7 +356,7 @@ export default function OnlineRoom(){
       </div>
     </nav>}
 
-    {room&&panel&&<div className="fixed inset-x-2 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 max-h-[min(68dvh,680px)] overflow-y-auto rounded-2xl border border-[#c19a61]/65 bg-[#17241c]/98 p-3 shadow-[0_15px_75px_#000b] backdrop-blur-xl sm:inset-x-auto sm:right-5 sm:w-[min(420px,calc(100vw-32px))] sm:p-4"
+    {room&&panel&&<div className="fixed inset-x-2 top-[calc(7.8rem+env(safe-area-inset-top))] bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-40 overflow-y-auto overscroll-contain rounded-2xl border border-[#c19a61]/65 bg-[#17241c]/98 p-3 shadow-[0_15px_75px_#000b] backdrop-blur-xl sm:inset-x-auto sm:right-5 sm:top-[104px] sm:w-[min(420px,calc(100vw-32px))] sm:p-4"
       role="region" aria-label={'Painel flutuante: '+panelTitle}>
       <div className="mb-3 flex items-center justify-between gap-3">
         <h2 className="font-serif text-xl text-[#f4dba8]">{panelTitle}</h2>
