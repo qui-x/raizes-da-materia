@@ -89,7 +89,7 @@ for(const viewport of screens){
   test('entrada responsiva • '+viewport.name, async({page})=>{
     await page.setViewportSize({width:viewport.width,height:viewport.height})
     await mockBackend(page,false)
-    await page.goto('/')
+    await page.goto('./')
     await expect(page.getByRole('heading',{name:'Raízes da Matéria'})).toBeVisible()
     await expect(page.getByRole('button',{name:'Criar sala multiplayer'})).toBeVisible()
     await expect(page.getByRole('button',{name:'Entrar na sala'})).toBeVisible()
@@ -100,7 +100,7 @@ for(const viewport of screens){
   test('mapa, doca e saída • '+viewport.name, async({page})=>{
     await page.setViewportSize({width:viewport.width,height:viewport.height})
     await mockBackend(page,true)
-    await page.goto('/')
+    await page.goto('./')
     await expect(page.getByRole('button',{name:/Sair da sala/})).toBeVisible()
     await expect(page.getByRole('navigation',{name:'Doca de navegação'})).toBeVisible()
     await expect(page.getByRole('group',{name:/Yggdrasil/})).toBeVisible()
@@ -125,7 +125,7 @@ for(const viewport of screens){
 test('rotas da árvore são orgânicas, sem grade retangular',async({page})=>{
   await page.setViewportSize({width:390,height:844})
   await mockBackend(page,true)
-  await page.goto('/')
+  await page.goto('./')
   await expect(page.getByRole('group',{name:/Yggdrasil/})).toBeVisible()
   const board=page.getByRole('group',{name:/Yggdrasil/})
   await expect(board.locator('[role="button"]')).toHaveCount(48)
