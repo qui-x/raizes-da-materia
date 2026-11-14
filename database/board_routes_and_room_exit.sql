@@ -76,6 +76,16 @@ alter table public.game_players drop constraint if exists game_players_room_id_s
 create unique index if not exists game_players_active_seat_uq
   on public.game_players(room_id,seat) where active;
 
+-- O ex-participante deixa de ler dados da sala imediatamente.
+create or replace function game_private.is_member(p_room uuid)
+returns boolean language sql stable security definer set search_path = ''
+as $
+  select exists(select 1 from public.game_rooms r
+    where r.id=p_room and r.host_id=(select auth.uid()))
+  or exists(select 1 from public.game_players p
+    where p.room_id=p_room and p.user_id=(select auth.uid()) and p.active);
+$;
+
 create or replace function game_private.join_room(p_code text, p_nickname text)
 returns jsonb language plpgsql security definer set search_path = ''
 as $$
@@ -96,9 +106,15 @@ begin
     return jsonb_build_object('id',v_room.id,'code',v_room.code,'seat',v_existing.seat);
   end if;
   if not found and v_room.phase<>'lobby' then raise exception 'Partida já iniciada'; end if;
-  select s::smallint into v_seat from generate_series(1,4) s
-    where not exists(select 1 from public.game_players p where p.room_id=v_room.id and p.seat=s and p.active)
-    order by case when found and s=v_existing.seat then 0 else 1 end, s limit 1;
+  -- Preferir o assento anterior durante reconexão; nunca ocupar assento ativo.
+  if found and not exists(select 1 from public.game_players p
+    where p.room_id=v_room.id and p.seat=v_existing.seat and p.active) then
+    v_seat:=v_existing.seat;
+  else
+    select s::smallint into v_seat from generate_series(1,4) s
+      where not exists(select 1 from public.game_players p where p.room_id=v_room.id and p.seat=s and p.active)
+      order by s limit 1;
+  end if;
   if v_seat is null then raise exception 'Sala completa'; end if;
   if found then
     update public.game_players set active=true,seat=v_seat,nickname=v_nickname
