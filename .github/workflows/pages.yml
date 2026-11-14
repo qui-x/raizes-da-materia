@@ -28,7 +28,7 @@ jobs:
           cache: npm
           cache-dependency-path: package-lock.json
       - name: Instalar dependências
-        run: npm ci
+        run: npm install --no-audit --no-fund
       - name: Compilar
         run: npm run build
       - uses: actions/configure-pages@v5

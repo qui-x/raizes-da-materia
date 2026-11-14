@@ -12,6 +12,7 @@ export default function App() {
   const [lastRoll, setLastRoll] = useState<number | null>(null)
   const [claimed, setClaimed] = useState<Record<string, number>>({})
   const [notice, setNotice] = useState('Lance o dado e escolha as casas conectadas ao seu peão.')
+  const [resolved, setResolved] = useState(false)
   const current = positions[active]
   const reachable = useMemo(() => remaining > 0 ? neighbors(current) : [], [current, remaining])
   const landing = nodes[current]
@@ -22,6 +23,7 @@ export default function App() {
     if (lastRoll !== null) return
     const n = Math.floor(Math.random() * 6) + 1
     setLastRoll(n)
+    setResolved(false)
     setRemaining(n)
     setNotice('Dado: ' + n + '. Toque em uma casa conectada para percorrer um passo.')
     setView('arvore')
@@ -33,16 +35,18 @@ export default function App() {
     if (remaining === 1) setNotice('Movimento encerrado. A casa alcançada é: ' + houseLabel[nodes[id].type] + '.')
   }
   function claim() {
-    if (!canResolve || landing.type !== 'identificacao') return
+    if (!canResolve || landing.type !== 'identificacao' || resolved) return
     // DEMONSTRAÇÃO LOCAL: não valida Libras nem verifica acertos; isso pertencerá ao mestre e ao servidor.
     const available = playableElements.find(el => claimed[el.symbol] === undefined)
     if (!available) { setNotice('Todos os elementos do protótipo estão atribuídos.'); return }
     setClaimed(previous => ({ ...previous, [available.symbol]: active }))
+    setResolved(true)
     setNotice('SIMULAÇÃO: ' + available.symbol + ' — ' + available.name + ' marcado para o Jogador ' + (active + 1) + '.')
   }
   function nextTurn() {
     setActive(i => (i + 1) % 4)
     setLastRoll(null)
+    setResolved(false)
     setRemaining(0)
     setNotice('Próximo jogador. Lance o dado para começar seu turno.')
   }
@@ -131,7 +135,7 @@ export default function App() {
             {canResolve && <div className="mb-2 rounded-xl border border-white/15 p-3 text-sm">
               <p className="font-semibold">{houseLabel[landing.type]}</p>
               <p className="mt-1 text-[#bcd1c4]">A carta e o desafio são apresentados pelo mestre.</p>
-              {landing.type === 'identificacao' && <button onClick={claim} className="mt-3 w-full rounded-lg border border-[#a7d7c0] px-3 py-3 text-[#d7f4e6]">Simular conquista de uma carta</button>}
+              {landing.type === 'identificacao' && <button onClick={claim} disabled={resolved} className="mt-3 w-full rounded-lg border border-[#a7d7c0] px-3 py-3 text-[#d7f4e6] disabled:opacity-40">{resolved ? 'Conquista registrada' : 'Simular conquista de uma carta'}</button>}
             </div>}
             <button onClick={nextTurn} disabled={!canResolve} className="min-h-11 w-full rounded-xl border border-white/25 px-4 font-medium disabled:opacity-35">Encerrar turno</button>
           </section>
