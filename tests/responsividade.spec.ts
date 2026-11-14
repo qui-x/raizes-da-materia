@@ -267,7 +267,7 @@ test('clique no próprio dado aciona RPC e retorna ao mapa após a animação',a
       headers:{'access-control-allow-origin':'*','content-range':'0-0/1'},body:JSON.stringify(data)})
   })
   await page.goto('./')
-  await page.getByRole('button',{name:'Ações'}).click()
+  await page.getByRole('button',{name:'Ações',exact:true}).click()
   const die=page.getByRole('button',{name:'Lançar dado'})
   await expect(die).toBeVisible()
   await expect(die).toBeEnabled()
