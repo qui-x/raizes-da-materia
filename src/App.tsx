@@ -1,10 +1,27 @@
 import { useMemo, useState } from 'react'
+import OnlineRoom from './OnlineRoom'
 import { houseColor, houseLabel, neighbors, nodes, playableElements, playerColors, playerMarks } from './game/board'
 
 type View = 'arvore' | 'tabela'
 const initialPositions = [1, 1, 1, 1]
 
 export default function App() {
+  const [page, setPage] = useState<'local'|'online'>(location.hash.includes('sala=') ? 'online' : 'local')
+  return <div className="min-h-dvh bg-[#0d1d19] text-white">
+    <nav aria-label="Modos de jogo" className="flex flex-wrap justify-center gap-2 border-b border-white/10 bg-[#102820] px-3 py-3">
+      <button onClick={() => setPage('local')} aria-current={page==='local'?'page':undefined}
+        className={'min-h-11 rounded-lg px-4 text-sm font-semibold '+(page==='local'?'bg-[#d8b875] text-[#1b3327]':'border border-white/30 text-[#e2eee7]')}>
+        Demonstração local
+      </button>
+      <button onClick={() => setPage('online')} aria-current={page==='online'?'page':undefined}
+        className={'min-h-11 rounded-lg px-4 text-sm font-semibold '+(page==='online'?'bg-[#d8b875] text-[#1b3327]':'border border-white/30 text-[#e2eee7]')}>
+        Sala online
+      </button>
+    </nav>
+    {page==='online' ? <OnlineRoom /> : <DemoApp />}
+  </div>
+}
+function DemoApp() {
   const [view, setView] = useState<View>('arvore')
   const [active, setActive] = useState(0)
   const [positions, setPositions] = useState(initialPositions)
