@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState, type RefObject } from 'react'
 import { edges, houseColor, houseLabel, nodes, playerColors, type HouseType } from '../game/board'
+import { treeRoute } from '../game/treeGeometry'
 
 /**
  * Yggdrasil original em vetores: árvore entalhada + mapa jogável.
@@ -25,26 +26,6 @@ const typeNames: HouseType[] = ['identificacao', 'cotidiano', 'desafio', 'aconte
 function position(nodeId: number) {
   return { x: nodes[nodeId].x, y: nodes[nodeId].y }
 }
-// O mesmo traço representa a madeira e o trajeto jogável.
-// Nenhuma malha de caminhos é sobreposta à gravura.
-function branchCurve(a: number, b: number): string {
-  const from = position(a), to = position(b)
-  const dx=to.x-from.x, dy=to.y-from.y
-  const swing=Math.sin(a*1.31+b*.83)*12
-  const c1x=from.x+dx*.3+(Math.abs(dx)<20?swing:0)
-  const c2x=from.x+dx*.7-(Math.abs(dx)<20?swing:0)
-  const c1y=from.y+dy*.24-(Math.abs(dx)>45?swing:0)
-  const c2y=from.y+dy*.76+(Math.abs(dx)>45?swing:0)
-  return 'M'+from.x+' '+from.y+' C'+c1x.toFixed(1)+' '+c1y.toFixed(1)+' '+
-    c2x.toFixed(1)+' '+c2y.toFixed(1)+' '+to.x+' '+to.y
-}
-function branchWidth(a: number,b: number): number {
-  if(a<12&&b<12) return 40
-  if(a>=12&&Math.floor(a/6)===Math.floor(b/6)) return a<24?24:19
-  return 13
-}
-
-
 function buildCanopy() {
   const byDepth = Array.from({ length: 7 }, () => '')
   const tips: { x: number; y: number; angle: number }[] = []
@@ -152,20 +133,37 @@ function TreeDrawing({ prefix, pawns, focusedNodeId, reachableIds, onMove, busy,
     {/* Veios de madeira: as arestas da árvore SÃO as rotas do jogo. */}
     <g fill="none" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {edges.map(([a,b]) => {
-        const d=branchCurve(a,b)
-        const width=branchWidth(a,b)
+        const route=treeRoute(a,b)
+        const d=route.path
+        const width=route.width
         const selected=focusedNodeId===a&&reachableIds.includes(b)||focusedNodeId===b&&reachableIds.includes(a)
-        return <g key={a+'-'+b}>
+        return <g key={a+'-'+b} data-branch-kind={route.middle?'intermediario':'principal'}>
           <path d={d} stroke="#090a08" strokeWidth={width+10}/>
           <path d={d} stroke={'url(#'+prefix+'-wood)'} strokeWidth={width}/>
           <path d={d} stroke="#e1bd80" strokeWidth={Math.max(1.3,width*.12)} opacity=".65"/>
           <path d={d} stroke="#231a11" strokeWidth={Math.max(1,width*.052)} opacity=".8"
             strokeDasharray={width>28?'18 28':'9 16'}/>
+          {/* Pequeno nó natural na madeira, sem criar uma nova casa jogável. */}
+          {route.middle&&<g transform={'translate('+route.midway.x+' '+route.midway.y+')'}
+            stroke="#bc9c67" fill="none" opacity=".83">
+            <ellipse rx="5.2" ry="3.4" strokeWidth="1.2" transform="rotate(-24)"/>
+            <ellipse rx="2" ry="1.3" strokeWidth=".9" transform="rotate(-24)"/>
+          </g>}
           {selected&&<path d={d} stroke="#fff1ae" strokeWidth={width+12} opacity=".20"
             className="motion-safe:animate-pulse"/>}
         </g>
       })}
     </g>
+    {/* Bifurcações esculpidas entre os caminhos intermediários. */}
+    {[27,33].map(id=>{
+      const n=position(id)
+      return <g key={id} transform={'translate('+n.x+' '+n.y+')'}
+        fill="none" stroke="#b48a4d" aria-hidden="true" opacity=".48">
+        <circle r="36" strokeWidth="2" strokeDasharray="4 11"/>
+        <path d="M-32 13 Q0 -8 32 13 M-27 21 Q0 0 27 21"
+          strokeWidth="1.7" strokeLinecap="round"/>
+      </g>
+    })}
     {/* Nó da matéria: quatro laços metálicos entrelaçados */}
     <g fill="none" stroke={'url(#' + prefix + '-gold)'} strokeWidth="4" opacity=".88">
       {[0,45,90,135].map(a=><ellipse key={a} cx="450" cy="1045" rx="113" ry="45" transform={'rotate('+a+' 450 1045)'} />)}
@@ -214,7 +212,7 @@ function TreeDrawing({ prefix, pawns, focusedNodeId, reachableIds, onMove, busy,
       const selectable=reachableIds.includes(n.id) && !busy && !!onMove
       const focused=focusedNodeId===n.id
       const occupants=pawns.filter(pawn=>pawn.nodeId===n.id)
-      return <g key={n.id}
+      return <g key={n.id} data-node-id={n.id}
         role="button" tabIndex={selectable?0:-1}
         aria-label={'Casa '+(n.id+1)+': '+houseLabel[n.type]+(selectable?', movimento disponível':'')}
         aria-disabled={!selectable}
@@ -322,6 +320,6 @@ export default function YggdrasilBoard({ pawns, focusedNodeId=null, reachableIds
         <span>{houseLabel[type]}</span>
       </div>)}
     </div>
-    <p className="px-3 pb-3 text-xs text-[#b9a98a] sm:px-5">Linhas douradas indicam conexões. Casas com halo luminoso podem ser escolhidas neste turno. No celular, deslize pelo tronco, galhos e raízes; a câmera acompanha o peão.</p>
+    <p className="px-3 pb-3 text-xs text-[#b9a98a] sm:px-5">Os galhos conduzem o movimento; pequenos nós entalhados indicam a passagem entre casas, sem consumir passos extras. No celular, deslize pelo tronco e pelas ramificações; a câmera acompanha o peão.</p>
   </div>
 }
