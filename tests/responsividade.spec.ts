@@ -138,3 +138,48 @@ test('rotas da árvore são orgânicas, sem grade retangular',async({page})=>{
   await expect(board.locator('path[stroke="#f8d28c"]')).toHaveCount(0)
   await expect(board.locator('path[stroke="#090a08"]')).not.toHaveCount(0)
 })
+
+
+test('casas intermediárias se distribuem por galhos orgânicos sem sobreposição',async({page})=>{
+  await page.setViewportSize({width:390,height:844})
+  await mockBackend(page,true)
+  await page.goto('./')
+  const drawing=page.getByRole('group',{name:/Yggdrasil/})
+  await expect(drawing).toBeVisible()
+  const points=await drawing.locator('[data-node-id]').evaluateAll((elements)=>{
+    return elements.filter(el=>{
+      const id=Number(el.getAttribute('data-node-id'))
+      return id>=24&&id<=35
+    }).map(el=>{
+      const id=Number(el.getAttribute('data-node-id'))
+      const transform=el.getAttribute('transform')??''
+      const values=transform.match(/translate\\(([-\\d.]+) ([-\\d.]+)\\)/)
+      return {id,x:Number(values?.[1]),y:Number(values?.[2])}
+    })
+  })
+  expect(points).toHaveLength(12)
+  expect(points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y))).toBeTruthy()
+  for(let i=0;i<points.length;i++){
+    for(let j=i+1;j<points.length;j++){
+      const distance=Math.hypot(points[i].x-points[j].x,points[i].y-points[j].y)
+      expect(distance,'Casas '+points[i].id+' e '+points[j].id+' não devem se sobrepor').toBeGreaterThan(55)
+    }
+  }
+  // Não pode ser uma grade com 12 casas em fileiras de alturas iguais.
+  expect(new Set(points.map(p=>p.y)).size).toBeGreaterThanOrEqual(10)
+  await expect(drawing.locator('[data-branch-kind="intermediario"]')).toHaveCount(12)
+  await expect(drawing.locator('[data-node-id]')).toHaveCount(48)
+  await assertNoOverflow(page,390)
+})
+
+test('capturas dos galhos intermediários para revisão da arte',async({page},testInfo)=>{
+  await page.setViewportSize({width:390,height:844})
+  await mockBackend(page,true)
+  await page.goto('./')
+  await expect(page.getByRole('group',{name:/Yggdrasil/})).toBeVisible()
+  const viewport=page.getByRole('region',{name:/Área navegável da árvore/})
+  await viewport.evaluate(el=>{el.scrollTop=285})
+  await page.screenshot({path:testInfo.outputPath('yggdrasil-galhos-mobile.png')})
+  await page.setViewportSize({width:1440,height:900})
+  await page.screenshot({path:testInfo.outputPath('yggdrasil-galhos-desktop.png'),fullPage:true})
+})
