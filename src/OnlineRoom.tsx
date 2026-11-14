@@ -90,7 +90,7 @@ export default function OnlineRoom(){
   const [headerHeight,setHeaderHeight]=useState(128)
   const [busy,setBusy]=useState(false)
   const [pendingRoll,setPendingRoll]=useState(false)
-  const [notice,setNotice]=useState('Crie uma sala como mestre ou entre com um código de convite.')
+  const [notice,setNotice]=useState('')
   const [authError,setAuthError]=useState<string|null>(null)
   const supabase=useMemo(getSupabaseClient,[])
   const configured=isSupabaseConfigured()
@@ -313,7 +313,9 @@ export default function OnlineRoom(){
 
     <div className="mx-auto w-full max-w-[1680px] px-2 py-3 sm:px-4">
       <p role="status" aria-live="polite" title={notice}
-        className={'mb-2 rounded-xl border border-[#b19565]/30 bg-[#24362a] px-3 py-2 text-sm leading-relaxed text-[#e4d5b5] '+(room?'max-h-12 overflow-hidden [@media(max-height:500px)]:max-h-8 [@media(max-height:500px)]:truncate':'')}>
+        className={notice
+          ?'mb-2 rounded-xl border border-[#b19565]/30 bg-[#24362a] px-3 py-2 text-sm leading-relaxed text-[#e4d5b5] '+(room?'max-h-12 overflow-hidden [@media(max-height:500px)]:max-h-8 [@media(max-height:500px)]:truncate':'')
+          :'sr-only'}>
         {notice}
       </p>
       {authError&&<p role="alert" className="mb-3 rounded-xl border border-red-400/60 bg-red-950/40 p-3 text-sm text-[#ffd9c8]">
