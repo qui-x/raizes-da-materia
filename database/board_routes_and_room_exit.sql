@@ -92,6 +92,7 @@ as $$
 declare
   v_room public.game_rooms%rowtype;
   v_existing public.game_players%rowtype;
+  v_has_existing boolean:=false;
   v_seat smallint;
   v_nickname text := left(trim(coalesce(p_nickname,'')),32);
 begin
@@ -102,12 +103,13 @@ begin
   if v_room.host_id=auth.uid() then raise exception 'Mestre não entra como jogador'; end if;
   if v_room.phase='finished' then raise exception 'Esta sala foi encerrada'; end if;
   select * into v_existing from public.game_players where room_id=v_room.id and user_id=auth.uid();
-  if found and v_existing.active then
+  v_has_existing:=found;
+  if v_has_existing and v_existing.active then
     return jsonb_build_object('id',v_room.id,'code',v_room.code,'seat',v_existing.seat);
   end if;
-  if not found and v_room.phase<>'lobby' then raise exception 'Partida já iniciada'; end if;
+  if not v_has_existing and v_room.phase<>'lobby' then raise exception 'Partida já iniciada'; end if;
   -- Preferir o assento anterior durante reconexão; nunca ocupar assento ativo.
-  if found and not exists(select 1 from public.game_players p
+  if v_has_existing and not exists(select 1 from public.game_players p
     where p.room_id=v_room.id and p.seat=v_existing.seat and p.active) then
     v_seat:=v_existing.seat;
   else
@@ -116,7 +118,7 @@ begin
       order by s limit 1;
   end if;
   if v_seat is null then raise exception 'Sala completa'; end if;
-  if found then
+  if v_has_existing then
     update public.game_players set active=true,seat=v_seat,nickname=v_nickname
       where id=v_existing.id;
   else
