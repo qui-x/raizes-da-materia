@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { houseColor, houseLabel, neighbors, nodes, playableElements, playerColors, playerMarks } from './game/board'
+import { houseLabel, neighbors, nodes, playableElements, playerColors, playerMarks } from './game/board'
 import { getSupabaseClient, isSupabaseConfigured } from './lib/supabase'
+import YggdrasilBoard from './components/YggdrasilBoard'
 
 type Room = {
   id: string; code: string; name: string; host_id: string
@@ -217,30 +218,14 @@ export default function OnlineRoom() {
         <div className={styles.card}>
           <h3 className="mb-2 font-semibold">Árvore da Descoberta</h3>
           <p className="text-xs text-[#baccbd]">Os círculos com borda clara indicam movimentos permitidos. Os peões são compartilhados com todos os celulares.</p>
-          <svg viewBox="0 0 395 603" className="mx-auto mt-2 block h-auto w-full max-w-[520px]" role="img" aria-label="Mapa multiplayer com 48 casas e peões">
-            <path d="M196 600 Q185 490 192 390 Q206 250 197 30" fill="none" stroke="#82694d" strokeWidth="18" strokeLinecap="round" />
-            {nodes.flatMap(n=>neighbors(n.id).filter(j=>j>n.id).map(j=>{
-              const b=nodes[j]
-              return <path key={n.id+'-'+j} d={'M'+n.x+' '+n.y+' L'+b.x+' '+b.y} fill="none" stroke="#8da997" strokeWidth="2" opacity=".75"/>
-            }))}
-            {nodes.map(n=>{
-              const selectable=reachable.includes(n.id) && !loading
-              const here=players.filter(p=>p.node_id===n.id)
-              return <g key={n.id} role="button" tabIndex={selectable?0:-1} aria-disabled={!selectable}
-                aria-label={'Casa '+(n.id+1)+': '+houseLabel[n.type]}
-                onClick={()=>selectable&&move(n.id)}
-                onKeyDown={e=> {if(selectable&&(e.key==='Enter'||e.key===' ')){e.preventDefault();move(n.id)}}}
-                style={{cursor:selectable?'pointer':'default'}}>
-                {selectable&&<circle cx={n.x} cy={n.y} r="21" stroke="#fbe8a1" fill="none" strokeWidth="2.5" strokeDasharray="5 2"/>}
-                <circle cx={n.x} cy={n.y} r="14" fill={houseColor[n.type]} stroke="#e6e0d1" strokeWidth="1.5"/>
-                <text x={n.x} y={n.y+4} textAnchor="middle" fontSize="11" fontWeight="bold" fill="white">{n.type==='identificacao'?'I':n.type==='cotidiano'?'C':n.type==='desafio'?'D':'±'}</text>
-                {here.map((p,i)=><g key={p.seat}>
-                  <circle cx={n.x+10+i*7} cy={n.y-12-i*3} r="7" fill={playerColors[p.seat-1]} stroke="white" strokeWidth="1"/>
-                  <text x={n.x+10+i*7} y={n.y-9-i*3} fontSize="8" textAnchor="middle" fill="#172b22">{p.seat}</text>
-                </g>)}
-              </g>
-            })}
-          </svg>
+          <YggdrasilBoard
+            className="mt-3"
+            pawns={players.map(player => ({ seat: player.seat, nodeId: player.node_id }))}
+            focusedNodeId={activePlayer?.node_id ?? null}
+            reachableIds={reachable}
+            onMove={move}
+            busy={loading}
+          />
         </div>
         <div className={styles.card}>
           <h3 className="mb-2 font-semibold">Tabela Periódica · Domínios</h3>
