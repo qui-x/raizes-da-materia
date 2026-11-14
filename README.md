@@ -1,23 +1,25 @@
 # Raízes da Matéria
 
-Jogo educativo de estratégia, Química e Libras em elaboração. Projeto original com dois tabuleiros complementares:
+Jogo educativo original de Química e Libras. A versão principal será um jogo **web mobile multiplayer**, com mestre e até quatro jogadores em uma sala compartilhada; a versão física será complementar.
 
-1. **Árvore da Descoberta** — mapa de exploração ramificado, inspirado na estrutura de uma árvore mitológica, com movimentação por dado e desafios em Libras.
-2. **Tabela Periódica** — construção e conquista de posições por até quatro jogadores.
+## Tabuleiros
+- **Árvore da Descoberta**: mapa SVG de 48 casas com navegação vertical/horizontal, bifurcações e quatro tipos de encontros.
+- **Tabela Periódica**: estrutura científica de 118 posições com 50 elementos jogáveis das famílias A. O domínio é indicado por quatro cores e símbolos.
 
-## Conceitos centrais
-- 118 posições científicas na Tabela Periódica; 50 elementos jogáveis das famílias A (grupos 1, 2 e 13–18).
-- Quatro casas de exploração: identificação, investigação cotidiana, desafio e acontecimento.
-- Cartas com identidade química no exterior e roteiro de pistas em Libras no interior, mediado pelo mestre.
-- Conquistar uma carta permite marcar seu domínio na Tabela Periódica.
-- A vitória depende de completar uma família ou período e apresentar uma narrativa científica.
-- Elementos do 7º período poderão conceder coringas estratégicos, sem substituir propriedades químicas reais.
+## Tecnologia
+React + TypeScript + Tailwind CSS + SVG, Vite, GitHub Pages e backend futuro no Supabase. Arquitetura de salas descrita em [docs/arquitetura-multijogador.md](docs/arquitetura-multijogador.md).
 
-## Stack inicial
-HTML semântico, JavaScript modular, Tailwind CSS e SVG para o mapa da árvore.
+## Desenvolvimento local
+```bash
+npm install
+npm run dev
+npm run build
+```
 
-## Estado
-Planejamento e protótipo inicial. Regras, artes e sinais-termo ainda não homologados. Datilologia não substitui sinais lexicais da Libras. A versão final deverá ser validada por especialistas em Libras e em ensino de Química.
+## Publicação
+O workflow `.github/workflows/pages.yml` prepara o site para GitHub Pages quando a branch for integrada na `main` e em **Settings → Pages → Build and deployment → Source** for escolhido **GitHub Actions**.
 
-## Desenvolvimento
-O primeiro protótipo será desenvolvido em ramo próprio, com revisão antes de integrar a `main`.
+A URL prevista, após ativar a publicação, é `https://qui-x.github.io/raizes-da-materia/`. Não presumir que esteja publicada antes de verificar o workflow e o Pages.
+
+## Estado da versão 0.1
+O front-end é uma **demonstração local** de mapa e Tabela Periódica. A conquista de elementos é simulada; o sistema ainda não comprova desafios em Libras nem permite salas online. As respostas científicas e os sinais-termo deverão ser validados por especialistas. A sincronização real requer o projeto Supabase e suas regras de segurança.

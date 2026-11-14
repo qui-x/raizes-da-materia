@@ -1,0 +1,7 @@
+@import "tailwindcss";
+
+:root { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; color-scheme: dark; }
+button { cursor: pointer; }
+button:focus-visible, [role="button"]:focus-visible { outline: 3px solid #f9d98e; outline-offset: 3px; }
+button:disabled { cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; } }
