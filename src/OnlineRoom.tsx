@@ -111,7 +111,7 @@ export default function OnlineRoom() {
   const available = playableElements.filter(e => !claims.some(c => c.symbol === e.symbol))
   const ownerBySymbol = useMemo(() => new Map(claims.map(c => [c.symbol,players.find(p=>p.user_id===c.owner_id)?.seat ?? 0])), [claims,players])
 
-  async function execute(action: () => PromiseLike<{data: unknown; error: {message:string}|null}>, message: string, roomOverride?: string) {
+  async function execute(action: () => PromiseLike<{data: unknown; error: {message:string}|null}>, message: string | ((result: unknown) => string), roomOverride?: string) {
     if (!supabase || loading) return
     setLoading(true)
     try {
@@ -120,8 +120,14 @@ export default function OnlineRoom() {
       const response = data as JsonResponse|boolean|number|null
       const id = roomOverride ?? (typeof response === 'object' && response !== null && 'id' in response ? response.id : roomId)
       if (id) { sessionStorage.setItem('raizes-room-id',id); setRoomId(id); await refresh(id) }
-      setNotice(message)
-    } catch (e) { setNotice('Não foi possível concluir: '+asError(e)) }
+      setNotice(typeof message === 'function' ? message(response) : message)
+    } catch (e) {
+      const detail = asError(e)
+      const guidance = detail.includes('Mestre não entra como jogador')
+        ? 'Você é o mestre desta sala. Use a visão de mestre aqui; para participar como jogador, abra o convite em uma janela InPrivate/anônima ou em outro celular.'
+        : detail
+      setNotice('Não foi possível concluir: ' + guidance)
+    }
     finally { setLoading(false) }
   }
 
@@ -130,8 +136,21 @@ export default function OnlineRoom() {
     await execute(() => supabase.rpc('game_create_room',{p_name:roomTitle}), 'Sala criada. Compartilhe o código com os jogadores.')
   }
   async function joinRoom() {
-    if (!supabase) return
-    await execute(() => supabase.rpc('game_join_room',{p_code:code.toUpperCase().trim(),p_nickname:name.trim()}), 'Você entrou na partida!')
+    if (!supabase || !userId) return
+    const roomCode = code.toUpperCase().trim()
+    await execute(async () => {
+      // Evita o erro HTTP 400 quando o mestre tenta entrar com a própria sessão.
+      const ownRoom = await supabase.from('game_rooms')
+        .select('id').eq('code', roomCode).eq('host_id', userId).maybeSingle()
+      if (ownRoom.error) return {data:null,error:ownRoom.error}
+      if (ownRoom.data) return {data:{id:ownRoom.data.id,kind:'host'},error:null}
+      return supabase.rpc('game_join_room',{p_code:roomCode,p_nickname:name.trim()})
+    }, result => {
+      const isHost = typeof result === 'object' && result !== null && 'kind' in result && result.kind === 'host'
+      return isHost
+        ? 'Esta é sua sala de mestre; reabrimos seu painel. Para testar um jogador, use outra sessão (janela InPrivate/anônima ou outro celular).'
+        : 'Você entrou na partida!'
+    })
   }
   function roomAction(fn: 'game_start_room'|'game_roll_die'|'game_end_turn') {
     if (!supabase || !roomId) return
@@ -172,7 +191,7 @@ export default function OnlineRoom() {
       </div>
       <div className={styles.card}>
         <h3 className="text-lg font-semibold">Sou jogador</h3>
-        <p className="mb-3 text-sm text-[#c3d3c9]">Entre usando o código compartilhado pelo mestre.</p>
+        <p className="mb-3 text-sm text-[#c3d3c9]">Entre usando o código compartilhado pelo mestre. O mestre não pode assumir uma vaga de jogador na mesma sessão.</p>
         <label className="mb-1 block text-sm" htmlFor="room-code">Código da sala</label>
         <input id="room-code" autoCapitalize="characters" autoComplete="off" className={styles.field} value={code} maxLength={12} onChange={e=>setCode(e.target.value.toUpperCase())}/>
         <label className="mb-1 mt-3 block text-sm" htmlFor="player-name">Apelido</label>
