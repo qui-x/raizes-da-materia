@@ -119,6 +119,12 @@ for(const viewport of screens){
     await page.getByRole('button',{name:'Cancelar'}).click()
     await expect(page.getByRole('dialog')).toHaveCount(0)
     await assertNoOverflow(page,viewport.width)
+
+    // Sair deve executar a RPC de encerramento e voltar à tela de ingresso.
+    await page.getByRole('button',{name:/Sair da sala/}).click()
+    await page.getByRole('button',{name:'Encerrar para todos'}).click()
+    await expect(page.getByRole('button',{name:'Criar sala multiplayer'})).toBeVisible()
+    await assertNoOverflow(page,viewport.width)
   })
 }
 
