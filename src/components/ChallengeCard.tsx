@@ -19,7 +19,7 @@ type Props={
   client:SupabaseClient;roomId:string;turnIndex:number
   userId:string|null;host:boolean;isCurrentPlayer:boolean
   participants:CardParticipant[];playerName:string
-  onClose:()=>void;onValidated:()=>void
+  onClose:()=>void;onValidated:()=>void;onEndTurn:()=>void
 }
 const themes={
   identificacao:{label:'Identificação do elemento',color:'#7651a2',mark:'◈'},
@@ -32,7 +32,7 @@ const textField='w-full rounded-xl border border-[#9b7b50]/50 bg-[#18160f] px-3 
 
 export default function ChallengeCard({
   client,roomId,turnIndex,userId,host,isCurrentPlayer,participants,playerName,
-  onClose,onValidated,
+  onClose,onValidated,onEndTurn,
 }:Props){
   const [challenge,setChallenge]=useState<Challenge|null>(null)
   const [card,setCard]=useState<Card|null>(null)
@@ -74,10 +74,7 @@ export default function ChallengeCard({
         if(response.error)throw response.error
         answerKey=response.data as Key
       }
-      setChallenge(current=>{
-        if(current?.id!==next.id){setChoice(null);setAnswer('')}
-        return next
-      })
+      setChallenge(next)
       setCard(c.data as Card)
       setSubmission(s.data as Submission|null)
       setMessages(m.data as Message[])
@@ -134,7 +131,8 @@ export default function ChallengeCard({
     const body=chatText.trim()
     void perform(()=>client.rpc('game_send_challenge_message',{
       p_room:roomId,p_challenge:challenge.id,p_body:body,
-    }),'chat').then(()=>setChatText(''))
+    }),'chat')
+    setChatText('')
   }
   function validate(correct:boolean){
     if(!challenge||!host||challenge.verdict||busy)return
@@ -142,6 +140,8 @@ export default function ChallengeCard({
       p_room:roomId,p_challenge:challenge.id,p_correct:correct,
     }),'validated')
   }
+
+  useEffect(()=>{setChoice(null);setAnswer('')},[challenge?.id])
 
   const theme=card?themes[card.category]:null
   const status=challenge?.verdict
@@ -243,6 +243,8 @@ export default function ChallengeCard({
             </div>}
             {status&&<p className="mt-3 text-sm font-semibold">Veredito registrado. Agora o turno pode ser encerrado.</p>}
           </section>}
+          {status&&(host||isCurrentPlayer)&&<button type="button" onClick={onEndTurn}
+            className={button+' min-h-12 bg-[#d2ad70] text-[#261c11]'}>Encerrar turno e continuar</button>}
 
           <section className="flex min-h-[240px] flex-1 flex-col overflow-hidden rounded-xl border border-[#9a7a4d]/45 bg-[#17251c] text-[#f0e0bb]">
             <div className="border-b border-[#9a7a4d]/40 px-3 py-3">
